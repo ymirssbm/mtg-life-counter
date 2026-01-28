@@ -25,7 +25,6 @@ body {
   color: #fff;
   height: 100vh;
   display: flex;
-  flex-direction: column;
 }
 
 /* Layout modes */
@@ -47,10 +46,17 @@ body.landscape {
   position: relative;
 }
 
+/* Life total */
 .life {
   font-size: 5rem;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
 }
 
+/* Controls */
 .controls {
   display: flex;
   gap: 1rem;
@@ -58,36 +64,26 @@ body.landscape {
 }
 
 button {
-  width: 70px;
-  height: 70px;
-  font-size: 2rem;
   border: none;
   border-radius: 10px;
   background: rgba(0,0,0,0.3);
   color: #fff;
+  cursor: pointer;
+}
+
+.life-btn {
+  width: 70px;
+  height: 70px;
+  font-size: 2rem;
 }
 
 button:active {
   background: rgba(0,0,0,0.5);
 }
 
-/* Upside-down mode */
+/* Flip only when needed */
 .flipped {
   transform: rotate(180deg);
-}
-
-/* Bottom control bar */
-.toolbar {
-  background: #000;
-  padding: 0.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.toolbar button {
-  height: 40px;
-  font-size: 0.9rem;
 }
 
 /* Color picker */
@@ -103,6 +99,44 @@ button:active {
   border-radius: 50%;
   border: 2px solid #000;
 }
+
+/* Menu */
+.menu-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.menu-button {
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+}
+
+.dropdown {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  border-radius: 10px;
+  padding: 0.5rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 180px;
+}
+
+.dropdown button {
+  height: 40px;
+  font-size: 0.9rem;
+}
+
+.dropdown.show {
+  display: flex;
+}
 </style>
 </head>
 
@@ -111,8 +145,8 @@ button:active {
 <div class="player" id="player1">
   <div class="life" id="life1">20</div>
   <div class="controls">
-    <button onclick="changeLife(1,-1)">−</button>
-    <button onclick="changeLife(1,1)">+</button>
+    <button class="life-btn" onclick="changeLife(1,-1)">−</button>
+    <button class="life-btn" onclick="changeLife(1,1)">+</button>
   </div>
   <div class="colors">
     <div class="color-btn" style="background:var(--white)" onclick="setColor(1,'white')"></div>
@@ -123,11 +157,11 @@ button:active {
   </div>
 </div>
 
-<div class="player flipped" id="player2">
+<div class="player" id="player2">
   <div class="life" id="life2">20</div>
   <div class="controls">
-    <button onclick="changeLife(2,-1)">−</button>
-    <button onclick="changeLife(2,1)">+</button>
+    <button class="life-btn" onclick="changeLife(2,-1)">−</button>
+    <button class="life-btn" onclick="changeLife(2,1)">+</button>
   </div>
   <div class="colors">
     <div class="color-btn" style="background:var(--white)" onclick="setColor(2,'white')"></div>
@@ -138,10 +172,14 @@ button:active {
   </div>
 </div>
 
-<div class="toolbar">
-  <button onclick="toggleOrientation()">Orientation</button>
-  <button onclick="toggleFlip()">Vertical Read Mode</button>
-  <button onclick="resetGame()">Reset</button>
+<!-- Center Menu -->
+<div class="menu-container">
+  <button class="menu-button" onclick="toggleMenu()">☰</button>
+  <div class="dropdown" id="menu">
+    <button onclick="toggleOrientation()">Toggle Orientation</button>
+    <button onclick="toggleVerticalRead()">Vertical Read Mode</button>
+    <button onclick="resetGame()">Reset Game</button>
+  </div>
 </div>
 
 <script>
@@ -161,8 +199,17 @@ function loadState() {
   const orientation = localStorage.getItem("orientation") ?? "vertical";
   document.body.className = orientation;
 
-  const flipped = localStorage.getItem("flipped") === "true";
-  document.getElementById("player2").classList.toggle("flipped", flipped);
+  const opposite = localStorage.getItem("verticalOpposite") === "true";
+  applyVerticalFlip(opposite);
+}
+
+function applyVerticalFlip(opposite) {
+  const p1 = document.getElementById("player1");
+  if (document.body.classList.contains("vertical") && opposite) {
+    p1.classList.add("flipped");
+  } else {
+    p1.classList.remove("flipped");
+  }
 }
 
 function changeLife(player, delta) {
@@ -173,9 +220,7 @@ function changeLife(player, delta) {
 }
 
 function resetGame() {
-  ['1','2'].forEach(p => {
-    localStorage.setItem(`life${p}`, DEFAULT_LIFE);
-  });
+  ['1','2'].forEach(p => localStorage.setItem(`life${p}`, DEFAULT_LIFE));
   loadState();
 }
 
@@ -185,18 +230,22 @@ function toggleOrientation() {
     : "vertical";
   document.body.className = newMode;
   localStorage.setItem("orientation", newMode);
+  applyVerticalFlip(localStorage.getItem("verticalOpposite") === "true");
 }
 
-function toggleFlip() {
-  const p2 = document.getElementById("player2");
-  const flipped = !p2.classList.contains("flipped");
-  p2.classList.toggle("flipped", flipped);
-  localStorage.setItem("flipped", flipped);
+function toggleVerticalRead() {
+  const current = localStorage.getItem("verticalOpposite") === "true";
+  localStorage.setItem("verticalOpposite", !current);
+  applyVerticalFlip(!current);
 }
 
 function setColor(player, color) {
   document.getElementById(`player${player}`).style.background = `var(--${color})`;
   localStorage.setItem(`color${player}`, color);
+}
+
+function toggleMenu() {
+  document.getElementById("menu").classList.toggle("show");
 }
 
 loadState();
