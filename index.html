@@ -1,8 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>MTG Life Counter</title>
 
 <style>
@@ -17,6 +19,7 @@
 * {
   box-sizing: border-box;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  touch-action: manipulation; /* prevents double-tap zoom */
 }
 
 body {
@@ -27,26 +30,17 @@ body {
   display: flex;
 }
 
-/* Layout modes */
-body.vertical {
-  flex-direction: column;
-}
+body.vertical { flex-direction: column; }
+body.landscape { flex-direction: row; }
 
-body.landscape {
-  flex-direction: row;
-}
-
-/* Player panels */
 .player {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: relative;
 }
 
-/* Life total */
 .life {
   font-size: 5rem;
   text-shadow:
@@ -56,49 +50,23 @@ body.landscape {
      2px  2px 0 #000;
 }
 
-/* Controls */
 .controls {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
 }
 
-button {
-  border: none;
-  border-radius: 10px;
-  background: rgba(0,0,0,0.3);
-  color: #fff;
-  cursor: pointer;
-}
-
 .life-btn {
   width: 70px;
   height: 70px;
   font-size: 2rem;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
 }
 
-button:active {
-  background: rgba(0,0,0,0.5);
-}
-
-/* Flip only when needed */
-.flipped {
-  transform: rotate(180deg);
-}
-
-/* Color picker */
-.colors {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
-}
-
-.color-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid #000;
-}
+.flipped { transform: rotate(180deg); }
 
 /* Menu */
 .menu-container {
@@ -113,29 +81,44 @@ button:active {
   width: 60px;
   height: 60px;
   font-size: 1.5rem;
+  border-radius: 10px;
+  border: none;
+  background: #111;
+  color: #fff;
 }
 
 .dropdown {
-  position: absolute;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #111;
-  border-radius: 10px;
-  padding: 0.5rem;
   display: none;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 180px;
+  margin-top: 0.5rem;
+  background: #111;
+  padding: 0.75rem;
+  border-radius: 10px;
+  min-width: 200px;
 }
+
+.dropdown.show { display: flex; }
 
 .dropdown button {
   height: 40px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  border: none;
+  background: #222;
+  color: #fff;
 }
 
-.dropdown.show {
+.color-row {
   display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.color-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #000;
 }
 </style>
 </head>
@@ -148,13 +131,6 @@ button:active {
     <button class="life-btn" onclick="changeLife(1,-1)">−</button>
     <button class="life-btn" onclick="changeLife(1,1)">+</button>
   </div>
-  <div class="colors">
-    <div class="color-btn" style="background:var(--white)" onclick="setColor(1,'white')"></div>
-    <div class="color-btn" style="background:var(--blue)" onclick="setColor(1,'blue')"></div>
-    <div class="color-btn" style="background:var(--black)" onclick="setColor(1,'black')"></div>
-    <div class="color-btn" style="background:var(--red)" onclick="setColor(1,'red')"></div>
-    <div class="color-btn" style="background:var(--green)" onclick="setColor(1,'green')"></div>
-  </div>
 </div>
 
 <div class="player" id="player2">
@@ -163,21 +139,32 @@ button:active {
     <button class="life-btn" onclick="changeLife(2,-1)">−</button>
     <button class="life-btn" onclick="changeLife(2,1)">+</button>
   </div>
-  <div class="colors">
-    <div class="color-btn" style="background:var(--white)" onclick="setColor(2,'white')"></div>
-    <div class="color-btn" style="background:var(--blue)" onclick="setColor(2,'blue')"></div>
-    <div class="color-btn" style="background:var(--black)" onclick="setColor(2,'black')"></div>
-    <div class="color-btn" style="background:var(--red)" onclick="setColor(2,'red')"></div>
-    <div class="color-btn" style="background:var(--green)" onclick="setColor(2,'green')"></div>
-  </div>
 </div>
 
-<!-- Center Menu -->
 <div class="menu-container">
   <button class="menu-button" onclick="toggleMenu()">☰</button>
   <div class="dropdown" id="menu">
     <button onclick="toggleOrientation()">Toggle Orientation</button>
     <button onclick="toggleVerticalRead()">Vertical Read Mode</button>
+
+    <strong>Player 1 Color</strong>
+    <div class="color-row">
+      <div class="color-btn" style="background:var(--white)" onclick="setColor(1,'white')"></div>
+      <div class="color-btn" style="background:var(--blue)" onclick="setColor(1,'blue')"></div>
+      <div class="color-btn" style="background:var(--black)" onclick="setColor(1,'black')"></div>
+      <div class="color-btn" style="background:var(--red)" onclick="setColor(1,'red')"></div>
+      <div class="color-btn" style="background:var(--green)" onclick="setColor(1,'green')"></div>
+    </div>
+
+    <strong>Player 2 Color</strong>
+    <div class="color-row">
+      <div class="color-btn" style="background:var(--white)" onclick="setColor(2,'white')"></div>
+      <div class="color-btn" style="background:var(--blue)" onclick="setColor(2,'blue')"></div>
+      <div class="color-btn" style="background:var(--black)" onclick="setColor(2,'black')"></div>
+      <div class="color-btn" style="background:var(--red)" onclick="setColor(2,'red')"></div>
+      <div class="color-btn" style="background:var(--green)" onclick="setColor(2,'green')"></div>
+    </div>
+
     <button onclick="resetGame()">Reset Game</button>
   </div>
 </div>
@@ -190,17 +177,14 @@ function loadState() {
     document.getElementById(`life${p}`).textContent =
       localStorage.getItem(`life${p}`) ?? DEFAULT_LIFE;
 
-    const color = localStorage.getItem(`color${p}`);
-    if (color) {
-      document.getElementById(`player${p}`).style.background = `var(--${color})`;
-    }
+    const c = localStorage.getItem(`color${p}`);
+    if (c) document.getElementById(`player${p}`).style.background = `var(--${c})`;
   });
 
   const orientation = localStorage.getItem("orientation") ?? "vertical";
   document.body.className = orientation;
 
-  const opposite = localStorage.getItem("verticalOpposite") === "true";
-  applyVerticalFlip(opposite);
+  applyVerticalFlip(localStorage.getItem("verticalOpposite") === "true");
 }
 
 function applyVerticalFlip(opposite) {
@@ -212,11 +196,11 @@ function applyVerticalFlip(opposite) {
   }
 }
 
-function changeLife(player, delta) {
-  const el = document.getElementById(`life${player}`);
-  const value = parseInt(el.textContent) + delta;
-  el.textContent = value;
-  localStorage.setItem(`life${player}`, value);
+function changeLife(p,d) {
+  const el = document.getElementById(`life${p}`);
+  const v = parseInt(el.textContent) + d;
+  el.textContent = v;
+  localStorage.setItem(`life${p}`, v);
 }
 
 function resetGame() {
@@ -225,23 +209,21 @@ function resetGame() {
 }
 
 function toggleOrientation() {
-  const newMode = document.body.classList.contains("vertical")
-    ? "landscape"
-    : "vertical";
-  document.body.className = newMode;
-  localStorage.setItem("orientation", newMode);
+  const m = document.body.classList.contains("vertical") ? "landscape" : "vertical";
+  document.body.className = m;
+  localStorage.setItem("orientation", m);
   applyVerticalFlip(localStorage.getItem("verticalOpposite") === "true");
 }
 
 function toggleVerticalRead() {
-  const current = localStorage.getItem("verticalOpposite") === "true";
-  localStorage.setItem("verticalOpposite", !current);
-  applyVerticalFlip(!current);
+  const v = localStorage.getItem("verticalOpposite") === "true";
+  localStorage.setItem("verticalOpposite", !v);
+  applyVerticalFlip(!v);
 }
 
-function setColor(player, color) {
-  document.getElementById(`player${player}`).style.background = `var(--${color})`;
-  localStorage.setItem(`color${player}`, color);
+function setColor(p,c) {
+  document.getElementById(`player${p}`).style.background = `var(--${c})`;
+  localStorage.setItem(`color${p}`, c);
 }
 
 function toggleMenu() {
@@ -253,3 +235,4 @@ loadState();
 
 </body>
 </html>
+```
