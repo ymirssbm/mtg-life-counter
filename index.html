@@ -1,126 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTG Life Counter</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MTG Life Counter</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+<style>
+:root {
+  --white: #f5f5f0;
+  --blue: #1e3a8a;
+  --black: #111111;
+  --red: #7f1d1d;
+  --green: #14532d;
+}
 
-    body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
-    .player {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      border-bottom: 1px solid #333;
-    }
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-    .player:last-child {
-      border-bottom: none;
-    }
+/* Layout modes */
+body.vertical {
+  flex-direction: column;
+}
 
-    .life {
-      font-size: 5rem;
-      margin-bottom: 1rem;
-    }
+body.landscape {
+  flex-direction: row;
+}
 
-    .controls {
-      display: flex;
-      gap: 1rem;
-    }
+/* Player panels */
+.player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
 
-    button {
-      width: 80px;
-      height: 80px;
-      font-size: 2rem;
-      border: none;
-      border-radius: 12px;
-      background: #222;
-      color: #fff;
-      cursor: pointer;
-    }
+.life {
+  font-size: 5rem;
+}
 
-    button:active {
-      background: #333;
-    }
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
 
-    .reset {
-      padding: 1rem;
-      background: #000;
-      border-top: 1px solid #333;
-    }
+button {
+  width: 70px;
+  height: 70px;
+  font-size: 2rem;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+}
 
-    .reset button {
-      width: 100%;
-      height: 50px;
-      font-size: 1rem;
-      background: #550000;
-    }
-  </style>
+button:active {
+  background: rgba(0,0,0,0.5);
+}
+
+/* Upside-down mode */
+.flipped {
+  transform: rotate(180deg);
+}
+
+/* Bottom control bar */
+.toolbar {
+  background: #000;
+  padding: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toolbar button {
+  height: 40px;
+  font-size: 0.9rem;
+}
+
+/* Color picker */
+.colors {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.color-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #000;
+}
+</style>
 </head>
-<body>
 
-  <div class="player">
-    <div class="life" id="life1">20</div>
-    <div class="controls">
-      <button onclick="changeLife(1, -1)">−</button>
-      <button onclick="changeLife(1, 1)">+</button>
-    </div>
+<body class="vertical">
+
+<div class="player" id="player1">
+  <div class="life" id="life1">20</div>
+  <div class="controls">
+    <button onclick="changeLife(1,-1)">−</button>
+    <button onclick="changeLife(1,1)">+</button>
   </div>
-
-  <div class="player">
-    <div class="life" id="life2">20</div>
-    <div class="controls">
-      <button onclick="changeLife(2, -1)">−</button>
-      <button onclick="changeLife(2, 1)">+</button>
-    </div>
+  <div class="colors">
+    <div class="color-btn" style="background:var(--white)" onclick="setColor(1,'white')"></div>
+    <div class="color-btn" style="background:var(--blue)" onclick="setColor(1,'blue')"></div>
+    <div class="color-btn" style="background:var(--black)" onclick="setColor(1,'black')"></div>
+    <div class="color-btn" style="background:var(--red)" onclick="setColor(1,'red')"></div>
+    <div class="color-btn" style="background:var(--green)" onclick="setColor(1,'green')"></div>
   </div>
+</div>
 
-  <div class="reset">
-    <button onclick="resetGame()">Reset Game</button>
+<div class="player flipped" id="player2">
+  <div class="life" id="life2">20</div>
+  <div class="controls">
+    <button onclick="changeLife(2,-1)">−</button>
+    <button onclick="changeLife(2,1)">+</button>
   </div>
+  <div class="colors">
+    <div class="color-btn" style="background:var(--white)" onclick="setColor(2,'white')"></div>
+    <div class="color-btn" style="background:var(--blue)" onclick="setColor(2,'blue')"></div>
+    <div class="color-btn" style="background:var(--black)" onclick="setColor(2,'black')"></div>
+    <div class="color-btn" style="background:var(--red)" onclick="setColor(2,'red')"></div>
+    <div class="color-btn" style="background:var(--green)" onclick="setColor(2,'green')"></div>
+  </div>
+</div>
 
-  <script>
-    const DEFAULT_LIFE = 20;
+<div class="toolbar">
+  <button onclick="toggleOrientation()">Orientation</button>
+  <button onclick="toggleFlip()">Vertical Read Mode</button>
+  <button onclick="resetGame()">Reset</button>
+</div>
 
-    function loadLife() {
-      const p1 = localStorage.getItem("player1Life");
-      const p2 = localStorage.getItem("player2Life");
+<script>
+const DEFAULT_LIFE = 20;
 
-      document.getElementById("life1").textContent = p1 ?? DEFAULT_LIFE;
-      document.getElementById("life2").textContent = p2 ?? DEFAULT_LIFE;
+function loadState() {
+  ['1','2'].forEach(p => {
+    document.getElementById(`life${p}`).textContent =
+      localStorage.getItem(`life${p}`) ?? DEFAULT_LIFE;
+
+    const color = localStorage.getItem(`color${p}`);
+    if (color) {
+      document.getElementById(`player${p}`).style.background = `var(--${color})`;
     }
+  });
 
-    function changeLife(player, delta) {
-      const el = document.getElementById(`life${player}`);
-      let life = parseInt(el.textContent, 10);
-      life += delta;
-      el.textContent = life;
-      localStorage.setItem(`player${player}Life`, life);
-    }
+  const orientation = localStorage.getItem("orientation") ?? "vertical";
+  document.body.className = orientation;
 
-    function resetGame() {
-      localStorage.setItem("player1Life", DEFAULT_LIFE);
-      localStorage.setItem("player2Life", DEFAULT_LIFE);
-      loadLife();
-    }
+  const flipped = localStorage.getItem("flipped") === "true";
+  document.getElementById("player2").classList.toggle("flipped", flipped);
+}
 
-    loadLife();
-  </script>
+function changeLife(player, delta) {
+  const el = document.getElementById(`life${player}`);
+  const value = parseInt(el.textContent) + delta;
+  el.textContent = value;
+  localStorage.setItem(`life${player}`, value);
+}
+
+function resetGame() {
+  ['1','2'].forEach(p => {
+    localStorage.setItem(`life${p}`, DEFAULT_LIFE);
+  });
+  loadState();
+}
+
+function toggleOrientation() {
+  const newMode = document.body.classList.contains("vertical")
+    ? "landscape"
+    : "vertical";
+  document.body.className = newMode;
+  localStorage.setItem("orientation", newMode);
+}
+
+function toggleFlip() {
+  const p2 = document.getElementById("player2");
+  const flipped = !p2.classList.contains("flipped");
+  p2.classList.toggle("flipped", flipped);
+  localStorage.setItem("flipped", flipped);
+}
+
+function setColor(player, color) {
+  document.getElementById(`player${player}`).style.background = `var(--${color})`;
+  localStorage.setItem(`color${player}`, color);
+}
+
+loadState();
+</script>
 
 </body>
 </html>
