@@ -38,6 +38,7 @@ body.landscape { flex-direction: row; }
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .life {
@@ -47,6 +48,20 @@ body.landscape { flex-direction: row; }
      2px -2px 0 #000,
     -2px  2px 0 #000,
      2px  2px 0 #000;
+}
+
+.delta {
+  position: absolute;
+  top: 20%;
+  font-size: 2rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  text-shadow: 0 0 6px #000;
+}
+
+.delta.show {
+  opacity: 1;
 }
 
 .controls {
@@ -124,6 +139,7 @@ body.landscape { flex-direction: row; }
 <body class="vertical">
 
 <div class="player" id="player1">
+  <div class="delta" id="delta1"></div>
   <div class="life" id="life1">20</div>
   <div class="controls">
     <button class="life-btn" onclick="changeLife(1,-1)">−</button>
@@ -132,6 +148,7 @@ body.landscape { flex-direction: row; }
 </div>
 
 <div class="player" id="player2">
+  <div class="delta" id="delta2"></div>
   <div class="life" id="life2">20</div>
   <div class="controls">
     <button class="life-btn" onclick="changeLife(2,-1)">−</button>
@@ -169,6 +186,8 @@ body.landscape { flex-direction: row; }
 
 <script>
 const DEFAULT_LIFE = 20;
+const deltaTimers = {};
+const deltaValues = {};
 
 function loadState() {
   ['1','2'].forEach(p => {
@@ -194,11 +213,27 @@ function applyVerticalFlip(opposite) {
   }
 }
 
+function showDelta(p, d) {
+  deltaValues[p] = (deltaValues[p] || 0) + d;
+
+  const el = document.getElementById(`delta${p}`);
+  const v = deltaValues[p];
+  el.textContent = (v > 0 ? "+" : "") + v;
+  el.classList.add("show");
+
+  clearTimeout(deltaTimers[p]);
+  deltaTimers[p] = setTimeout(() => {
+    el.classList.remove("show");
+    deltaValues[p] = 0;
+  }, 800);
+}
+
 function changeLife(p,d) {
   const el = document.getElementById(`life${p}`);
   const v = parseInt(el.textContent) + d;
   el.textContent = v;
   localStorage.setItem(`life${p}`, v);
+  showDelta(p, d);
 }
 
 function resetGame() {
